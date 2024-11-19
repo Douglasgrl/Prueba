@@ -7,10 +7,12 @@ import CreateCharacter from "./CreateCharacter";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/reducers/auth";
 import { IconLogout } from "../../utils/svg";
+import GenderFilter from "../../components/GenderFilters";
 
 const Home = () => {
   const [charactersAll, setCharactersAll] = useState<CharactersProps[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [genderFilter, setGenderFilter] = useState<string>(""); // Filtro por género
   const dispatch = useDispatch();
 
   const getCharactersList = async () => {
@@ -26,19 +28,26 @@ const Home = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Filtrar personajes que coincidan con la búsqueda
-  const filteredCharacters = charactersAll.filter((charact) =>
-    charact.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  console.log(charactersAll);
+  // Filtrar personajes que coincidan con la búsqueda y el género
+  const filteredCharacters = charactersAll.filter((charact) => {
+    const matchesSearch = charact.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesGender = genderFilter
+      ? charact.gender.toLowerCase() === genderFilter
+      : true;
+    return matchesSearch && matchesGender;
+  });
 
   const handleLogout = () => {
     dispatch(logoutUser());
   };
 
   const handleCreateCharacter = (newCharacter: CharactersProps) => {
-    setCharactersAll((prev) => [...prev, { ...newCharacter, id: prev.length + 1 }]); // Agregar nuevo personaje con ID único
+    setCharactersAll((prev) => [
+      ...prev,
+      { ...newCharacter, id: prev.length + 1 },
+    ]);
   };
 
   return (
@@ -49,9 +58,15 @@ const Home = () => {
           value={searchQuery}
           onChange={handleSearchChange}
         />
+
+        {/* Filtros por género */}
+        <GenderFilter
+          genderFilter={genderFilter}
+          setGenderFilter={setGenderFilter}
+        />
+
         <div className="flex flex-col gap-3 justify-center items-center text-center lg:flex-row mt-5 lg:mt-0">
           <CreateCharacter onCreate={handleCreateCharacter} />
-
           <div className="flex flex-row items-center justify-center gap-3 border-[1px] border-rick-red px-4 rounded-md h-[40px] cursor-pointer">
             <IconLogout />
             <p className="text-rick-red" onClick={handleLogout}>
